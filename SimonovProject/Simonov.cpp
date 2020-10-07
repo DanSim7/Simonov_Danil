@@ -64,7 +64,7 @@ int main() {
 		cout << "7 - Загрузить\n";
 		cout << "0 - Выход\n";
 
-		int inputMenu = 0;
+		int inputMenu;
 		TryInput(inputMenu, "Что Вы хотите сделать: ");
 		
 		switch (input)
@@ -78,11 +78,25 @@ int main() {
 		case 3:
 			ShowAll();
 		break;
+		case 4:
+			ShowAll();
+			break;
+		case 5:
+			ShowAll();
+			break;
+		case 6:
+			ShowAll();
+			break;
+		case 7:
+			ShowAll();
+			break;
+		case 0:
+			isRunning = false;
+			break;
 		default:
 			return 0;
 		break;
 		}
-		isRunning = false;
 		
 	}
 }
