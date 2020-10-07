@@ -9,7 +9,8 @@ using namespace std;
 /// <param name="input">Переменная ввода int</param>
 /// <param name="inputText">Текст, запрашивающий ввод переменной</param>
 /// <returns></returns>
-void TryInput(int& input, string inputText) {
+void TryInput(int& input, string inputText)
+{
 	do {
 		cout << inputText;
 		cin.clear();
@@ -24,7 +25,8 @@ void TryInput(int& input, string inputText) {
 /// <param name="input">Переменная ввода float</param>
 /// <param name="inputText">Текст, запрашивающий ввод переменной</param>
 /// <returns></returns>
-void TryInput(float& input, string inputText) {
+void TryInput(float& input, string inputText)
+{
 	do {
 		cout << inputText;
 		cin.clear();
@@ -39,7 +41,8 @@ void TryInput(float& input, string inputText) {
 /// <param name="input">Переменная ввода bool</param>
 /// <param name="inputText">Текст, запрашивающий ввод переменной</param>
 /// <returns></returns>
-void TryInput(bool& input, string inputText) {
+void TryInput(bool& input, string inputText)
+{
 	do {
 		cout << inputText;
 		cin.clear();
@@ -48,7 +51,77 @@ void TryInput(bool& input, string inputText) {
 	} while (cin.fail());
 }
 
-int main() {
+struct CompressorStation {
+	int id;
+	string name;
+	int shopsCount;
+	int operationShopsCount;
+	float efficiency;
+	list<bool> shop;
+};
+
+struct Pipe {
+	int id;
+	float length;
+	float diameter;
+	bool isRepairing;
+};
+
+list<Pipe> pipeList;
+list<CompressorStation> compStationList;
+
+void AddPipe()
+{
+	Pipe pipe = Pipe();
+	TryInput(pipe.id, "\nВведите идентификатор трубы: ");
+	TryInput(pipe.length, "\nВведите длину трубы: ");
+	TryInput(pipe.diameter, "\nВведите диаметр трубы: ");
+	TryInput(pipe.isRepairing, "\nТруба на ремонте? (true или false): ");
+	pipeList.push_front(pipe);
+}
+
+void AddCompressorStation() {
+
+}
+
+void ShowAll() {
+	cout << "Список труб:";
+	for (Pipe pipe : pipeList)
+	{
+		cout << "Труба " << pipe.id << ".\n"
+			<< "    Длина: " << pipe.length << "\n"
+			<< "    Диаметр:"  << pipe.length << "\n"
+			<< "    В ремонте: " << pipe.length << "\n";
+	}
+	cout << "Список КС:";
+	for (CompressorStation compStation : compStationList)
+	{
+		cout << "Компрессорная станция " << compStation.id << ".\n"
+			<< "    Имя: " << compStation.name << "\n"
+			<< "    Работает " << compStation.shopsCount << "/" << compStation.operationShopsCount << " цехов" "\n"
+			<< "    Эффективность: " << compStation.efficiency << "\n";
+	}
+}
+
+void EditPipe() {
+
+}
+
+void EditCompressorStation() {
+
+}
+
+void Save() {
+
+}
+
+void Load() {
+
+}
+
+
+int main()
+{
 	setlocale(LC_ALL, "ru");
 	bool isRunning = true;
 	
@@ -67,7 +140,7 @@ int main() {
 		int inputMenu;
 		TryInput(inputMenu, "Что Вы хотите сделать: ");
 		
-		switch (input)
+		switch (inputMenu)
 		{
 		case 1:
 			AddPipe();
@@ -79,16 +152,16 @@ int main() {
 			ShowAll();
 		break;
 		case 4:
-			ShowAll();
+			EditPipe();
 			break;
 		case 5:
-			ShowAll();
+			EditCompressorStation();
 			break;
 		case 6:
-			ShowAll();
+			Save();
 			break;
 		case 7:
-			ShowAll();
+			Load();
 			break;
 		case 0:
 			isRunning = false;
@@ -101,30 +174,3 @@ int main() {
 	}
 }
 
-void AddPipe() {
-
-}
-
-void AddCompressorStation() {
-
-}
-
-void ShowAll() {
-
-}
-
-struct CompressorStation {
-	int id;
-	string name;
-	int shopsCount;
-	int operationShopsCount;
-	float efficiency;
-	list<bool> shop;
-};
-
-struct Pipe {
-	int id;
-	float length;
-	float diameter;
-	bool isRepairing;
-};
