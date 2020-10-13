@@ -3,6 +3,8 @@
 #include <vector>
 #include <conio.h>
 #include <iterator>
+#include <fstream>
+#include <windows.h>
 using namespace std;
 
 /// <summary>
@@ -126,7 +128,7 @@ void AddPipe()
 	}
 	TryInput(pipe.length, "Введите длину трубы: ");
 	TryInput(pipe.diameter, "Введите диаметр трубы: ");
-	pipe.isRepairing = false;
+	pipe.isRepairing = true;
 	cout << endl;
 	pipeList.push_back(pipe);
 }
@@ -185,7 +187,7 @@ void ShowAll()
 	{
 		cout << "Труба " << pipeList[i].id << ".\n"
 			<< "    Длина: " << pipeList[i].length << "\n"
-			<< "    Диаметр:" << pipeList[i].diameter << "\n";
+			<< "    Диаметр: " << pipeList[i].diameter << "\n";
 		if (pipeList[i].isRepairing)
 			cout << "    Находится в ремонте" << "\n";
 		else
@@ -368,11 +370,54 @@ void EditCompressorStation()
 void Save()
 {
 	cout << "\n---Сохранить---\n";
+	ofstream fout;
+	fout.open("data.txt");
+	fout << pipeList.size() << " " << compStationList.size() << "\n";
+	for (int i = 0; i < pipeList.size(); i++)
+	{
+		fout << pipeList[i].id << " "
+			<< pipeList[i].length << " "
+			<< pipeList[i].diameter << " "
+			<< pipeList[i].isRepairing << "\n";
+	}
+	for (int i = 0; i < compStationList.size(); i++)
+	{
+		fout << compStationList[i].id << " "
+			<< compStationList[i].name << " "
+			<< compStationList[i].shopsCount << " "
+			<< compStationList[i].operationShopsCount << "\n";
+	}
+	cout << "Файл успешно сохранён";
+	cout << "\nНажмите любую клавишу, чтобы продолжить\n";
+	_getch();
+	fout.close();
 }
 
 void Load()
 {
 	cout << "\n---Загрузить---\n";
+	ifstream fin("data.txt");
+	int pipeCount;
+	int csCount;
+	fin >> pipeCount >> csCount;
+	pipeList = vector<Pipe>(pipeCount);
+	compStationList = vector<CompressorStation>(csCount);
+	for (int i = 0; i < pipeCount; i++)
+	{
+		fin >> pipeList[i].id
+			>> pipeList[i].length
+			>> pipeList[i].diameter
+			>> pipeList[i].isRepairing;
+	}
+	for (int i = 0; i < csCount; i++)
+	{
+		fin >> compStationList[i].id
+			>> compStationList[i].name
+			>> compStationList[i].shopsCount
+			>> compStationList[i].operationShopsCount;
+		compStationList[i].RecountEfficiency();
+	}
+
 }
 
 void Menu()
@@ -428,5 +473,7 @@ void Menu()
 int main()
 {
 	setlocale(LC_ALL, "ru");
+	SetConsoleCP(1251);
+	SetConsoleOutputCP(1251);
 	Menu();
 }
