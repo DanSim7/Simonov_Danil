@@ -182,7 +182,7 @@ void AddCompressorStation()
 void ShowAll()
 {
 	cout << "\n---Просмотр всех объектов---\n";
-	cout << "Список труб:\n";
+	cout << "Количество труб - " << pipeList.size() << "\n";
 	for (int i = 0; i < pipeList.size(); i++)
 	{
 		cout << "Труба " << pipeList[i].id << ".\n"
@@ -193,7 +193,7 @@ void ShowAll()
 		else
 			cout << "    Не нуждается в ремонте" << "\n";
 	}
-	cout << "\nСписок КС:\n";
+	cout << "\nКоличество компрессорных станций - " << compStationList.size() << "\n";
 	for (int i = 0; i < compStationList.size(); i++)
 	{
 		cout << "Компрессорная станция " << compStationList[i].id << ".\n"
@@ -202,6 +202,7 @@ void ShowAll()
 			<< "    Эффективность: " << compStationList[i].efficiency << "\n";
 	}
 	cout << "\nНажмите любую клавишу, чтобы продолжить\n";
+	// Строка снизу взята с cyberforum.ru
 	_getch();
 }
 
@@ -249,6 +250,7 @@ void EditPipe()
 			{
 			case 1:
 			{
+				// Взято с metanit.com
 				auto iteration = pipeList.cbegin();
 				pipeList.erase(iteration + pipeIndex);
 				cout << "Труба успешно удалена\n";
@@ -269,6 +271,7 @@ void EditPipe()
 		}
 	}
 	cout << "\nНажмите любую клавишу, чтобы продолжить\n";
+	// Строка снизу взята с cyberforum.ru
 	_getch();
 }
 
@@ -317,6 +320,7 @@ void EditCompressorStation()
 			{
 			case 1:
 			{
+				// Взято с metanit.com
 				auto iteration = pipeList.cbegin();
 				pipeList.erase(iteration + csIndex);
 				cout << "КС успешно удалена\n";
@@ -364,6 +368,7 @@ void EditCompressorStation()
 		}
 	}
 	cout << "\nНажмите любую клавишу, чтобы продолжить\n";
+	// Строка снизу взята с cyberforum.ru
 	_getch();
 }
 
@@ -372,22 +377,29 @@ void Save()
 	cout << "\n---Сохранить---\n";
 	ofstream fout;
 	fout.open("data.txt");
-	fout << pipeList.size() << " " << compStationList.size() << "\n";
-	for (int i = 0; i < pipeList.size(); i++)
+	if (fout.is_open())
 	{
-		fout << pipeList[i].id << " "
-			<< pipeList[i].length << " "
-			<< pipeList[i].diameter << " "
-			<< pipeList[i].isRepairing << "\n";
+		fout << pipeList.size() << " " << compStationList.size() << "\n";
+		for (int i = 0; i < pipeList.size(); i++)
+		{
+			fout << pipeList[i].id << " "
+				<< pipeList[i].length << " "
+				<< pipeList[i].diameter << " "
+				<< pipeList[i].isRepairing << "\n";
+		}
+		for (int i = 0; i < compStationList.size(); i++)
+		{
+			fout << compStationList[i].id << " "
+				<< compStationList[i].name << " "
+				<< compStationList[i].shopsCount << " "
+				<< compStationList[i].operationShopsCount << "\n";
+		}
+		cout << "Файл успешно сохранён";
 	}
-	for (int i = 0; i < compStationList.size(); i++)
+	else
 	{
-		fout << compStationList[i].id << " "
-			<< compStationList[i].name << " "
-			<< compStationList[i].shopsCount << " "
-			<< compStationList[i].operationShopsCount << "\n";
+		cout << "Ошибка сохранения файла!";
 	}
-	cout << "Файл успешно сохранён";
 	cout << "\nНажмите любую клавишу, чтобы продолжить\n";
 	_getch();
 	fout.close();
@@ -473,7 +485,8 @@ void Menu()
 int main()
 {
 	setlocale(LC_ALL, "ru");
-	SetConsoleCP(1251);
+	// Две строчки снизу взяты с cyberforum.ru
+	SetConsoleCP(1251); // возможно не нужна 
 	SetConsoleOutputCP(1251);
 	Menu();
 }
