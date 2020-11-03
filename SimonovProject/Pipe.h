@@ -5,17 +5,17 @@
 
 class Pipe
 {
-	int Id1;
+	int pId;
 	float Length;
 	float Diameter;
 	bool IsRepairing;
-
 public:
+	static int pMaxId;
 	friend std::ostream& operator << (std::ostream& out, const Pipe& p);
 	Pipe();
-	Pipe(int id);
 	Pipe(std::ifstream& fin);
 	int GetId() const;
+	bool GetRepairing() const;
 	void Edit();
 	void SaveToFile(std::ofstream& fout);
 };

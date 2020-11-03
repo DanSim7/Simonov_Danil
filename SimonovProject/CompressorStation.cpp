@@ -1,6 +1,7 @@
 #include "CompressorStation.h"
 
-int Id;
+int CompressorStation::csMaxId = 0;
+int csId;
 std::string Name;
 int ShopsCount;
 int WorkingShopsCount;
@@ -8,11 +9,7 @@ float Efficiency;
 
 CompressorStation::CompressorStation()
 {
-}
-
-CompressorStation::CompressorStation(int id)
-{
-	Id = id;
+	csId = ++csMaxId;
 	std::cout << "Введите имя компрессорной станции: ";
 	std::cin.ignore();
 	std::getline(std::cin, Name);
@@ -27,7 +24,7 @@ CompressorStation::CompressorStation(int id)
 
 CompressorStation::CompressorStation(std::ifstream& fin)
 {
-	fin >> Id;
+	fin >> csId;
 	fin.ignore();
 	std::getline(fin, Name);
 	fin >> ShopsCount
@@ -37,7 +34,17 @@ CompressorStation::CompressorStation(std::ifstream& fin)
 
 int CompressorStation::GetId() const
 {
-	return Id;
+	return csId;
+}
+
+std::string CompressorStation::GetName() const
+{
+	return Name;
+}
+
+float CompressorStation::GetPercentUnusedShops() const
+{
+	return (1 - (WorkingShopsCount * 1.0f / ShopsCount)) * 100;
 }
 
 void CompressorStation::RecountShopsCount()
@@ -80,7 +87,7 @@ void CompressorStation::RecountWorkingShopsCount()
 
 void CompressorStation::SaveToFile(std::ofstream& fout)
 {
-	fout << Id << '\n'
+	fout << csId << '\n'
 		<< Name << '\n'
 		<< ShopsCount << '\n'
 		<< WorkingShopsCount << '\n'
@@ -89,9 +96,10 @@ void CompressorStation::SaveToFile(std::ofstream& fout)
 
 std::ostream& operator << (std::ostream& out, const CompressorStation& cs)
 {
-	std::cout << "Компрессорная станция " << cs.Id << ".\n"
+	std::cout << "Компрессорная станция " << cs.csId << ".\n"
 		<< "    Имя: " << cs.Name << "\n"
 		<< "    Работает " << cs.WorkingShopsCount << "/" << cs.ShopsCount << " цехов" "\n"
 		<< "    Эффективность: " << cs.Efficiency << "\n";
+	std::cout << cs.GetPercentUnusedShops() << '\n';
 	return out;
 }

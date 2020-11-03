@@ -6,17 +6,19 @@
 
 class CompressorStation
 {
-	int Id;
+	int csId;
 	std::string Name;
 	int ShopsCount;
 	int WorkingShopsCount;
 	float Efficiency;
-	friend std::ostream& operator << (std::ostream& out, const CompressorStation& cs);
 public:
+	static int csMaxId;
+	friend std::ostream& operator << (std::ostream& out, const CompressorStation& cs);
 	CompressorStation();
-	CompressorStation(int id);
 	CompressorStation(std::ifstream& fin);
 	int GetId() const;
+	std::string GetName() const;
+	float GetPercentUnusedShops() const;
 	void RecountShopsCount();
 	void RecountWorkingShopsCount();
 	void SaveToFile(std::ofstream& fout);
