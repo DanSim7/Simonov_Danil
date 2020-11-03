@@ -139,7 +139,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CompressorStation.cpp" />
+    <ClCompile Include="Pipe.cpp" />
     <ClCompile Include="Simonov.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CompressorStation.h" />
+    <ClInclude Include="Pipe.h" />
+    <ClInclude Include="utilities.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
