@@ -6,6 +6,7 @@
 #include <windows.h>
 #include "Pipe.h"
 #include "CompressorStation.h"
+#include "Graph.h"
 #include "utilities.h"
 using namespace std;
 
@@ -75,6 +76,7 @@ int main()
 
 	unordered_map<int, Pipe> pGroup = unordered_map<int, Pipe>{};
 	unordered_map<int, CompressorStation> csGroup = unordered_map<int, CompressorStation>{};
+	int edgeCount = 0;
 
 	while (true)
 	{
@@ -90,6 +92,9 @@ int main()
 			<< "9 - Поиск КС\n"
 			<< "10 - Сохранить\n"
 			<< "11 - Загрузить\n"
+			<< "12 - Связать трубу с КС\n"
+			<< "13 - Вывести газотранспортную сеть\n"
+			<< "14 - Выполнить топологическую сортировку\n"
 			<< "0 и пр. - Выход\n";
 
 		int inputMenu;
@@ -333,7 +338,8 @@ int main()
 				fout << pGroup.size() << '\n'
 					<< csGroup.size() << '\n'
 					<< Pipe::pMaxId << '\n'
-					<< CompressorStation::csMaxId << '\n';
+					<< CompressorStation::csMaxId << '\n'
+					<< edgeCount << '\n';
 				for (pair<int, Pipe> p : pGroup)
 				{
 					fout << p.first << '\n';
@@ -371,6 +377,7 @@ int main()
 				fin >> csSize;
 				fin >> Pipe::pMaxId;
 				fin >> CompressorStation::csMaxId;
+				fin >> edgeCount;
 				while (pSize--)
 				{
 					int id;
@@ -390,6 +397,61 @@ int main()
 			{
 				cout << "Ошибка сохранения файла!\n";
 			}
+			break;
+		}
+		case 12:
+		{
+			PrintTitle("СВЯЗАТЬ ТРУБУ С КС");
+			if (pGroup.size() != 0 && csGroup.size() > 1)
+			{
+				int id = FindObjById(pGroup);
+				if (id != -1)
+				{
+					cout << "КС, из которой выходит труба:\n";
+					int outCsId = FindObjById(csGroup);
+					cout << "КС, в которую входит труба:\n";
+					int inCsId = FindObjById(csGroup);
+					while (inCsId == outCsId)
+					{
+						cout << "Труба не может входить в ту же самую КС! Введите другой Id:\n";
+						int inCsId = FindObjById(csGroup);
+					}
+					pGroup[id].outCsId = outCsId;
+					pGroup[id].inCsId = inCsId;
+					edgeCount++;
+				}
+				else
+				{
+					cout << "Выход из режима связи трубы с КС...\n";
+				}
+			}
+			else
+			{
+				cout << "У Вас нет труб и КС для связи.\n";
+			}
+			break;
+		}
+		case 13:
+		{
+			PrintTitle("ГАЗОТРАНСПОРТНАЯ СЕТЬ");
+			Graph g(edgeCount);
+			for (const pair<int, Pipe>& p : pGroup)
+				if (p.second.inCsId > 0 && p.second.outCsId > 0 && !p.second.GetRepairing())
+				{
+					g.addEdge(p.second.outCsId - 1, p.second.inCsId - 1);
+					cout << "КС " << p.second.outCsId << " -- Труба " << p.first << " -> КС " << p.second.inCsId << '\n';
+				}
+			
+			break;
+		}
+		case 14:
+		{
+			PrintTitle("ТОПОЛОГИЧЕСКАЯ СОРТИРОВКА");
+			Graph g(edgeCount);
+			for (const pair<int, Pipe>& p : pGroup)
+				if (p.second.inCsId > 0 && p.second.outCsId > 0 && !p.second.GetRepairing())
+					g.addEdge(p.second.outCsId - 1, p.second.inCsId - 1);
+			g.topologicalSort();
 			break;
 		}
 		default:

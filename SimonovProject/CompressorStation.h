@@ -6,7 +6,6 @@
 
 class CompressorStation
 {
-	int csId;
 	std::string Name;
 	int ShopsCount;
 	int WorkingShopsCount;

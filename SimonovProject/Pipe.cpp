@@ -4,6 +4,8 @@ int Pipe::pMaxId = 0;
 float Length;
 float Diameter;
 bool IsRepairing;
+int outCsId;
+int inCsId;
 
 Pipe::Pipe()
 {
@@ -13,7 +15,14 @@ Pipe::Pipe(std::ifstream& fin)
 {
 	fin >> Length
 		>> Diameter
-		>> IsRepairing;
+		>> IsRepairing
+		>> outCsId
+		>> inCsId;
+}
+
+float Pipe::GetWeight() const
+{
+	return 4 * 3.14 * Diameter / Length;
 }
 
 bool Pipe::GetRepairing() const
@@ -55,7 +64,9 @@ void Pipe::SaveToFile(std::ofstream& fout)
 {
 	fout << Length << '\n'
 		<< Diameter << '\n'
-		<< IsRepairing << '\n';
+		<< IsRepairing << '\n'
+		<< outCsId << '\n'
+		<< inCsId << '\n';
 }
 
 void Pipe::Repair()
@@ -79,5 +90,7 @@ std::istream& operator >> (std::istream& in, Pipe& p)
 	TryInput(p.Length, "¬ведите длину трубы (в метрах): ");
 	TryInput(p.Diameter, "¬ведите диаметр трубы (в миллиметрах): ");
 	p.IsRepairing = true;
+	p.outCsId = -1;
+	p.inCsId = -1;
 	return in;
 }
