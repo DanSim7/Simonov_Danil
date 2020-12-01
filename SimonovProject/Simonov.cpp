@@ -1,6 +1,6 @@
 #include <iostream>
 #include <string>
-#include <vector>
+#include <unordered_map>
 #include <conio.h>
 #include <fstream>
 #include <windows.h>
@@ -20,7 +20,7 @@ void PrintTitle(string title)
 }
 
 template <typename T>
-int FindObjById(const vector<T>& objGroup)
+int FindObjById(const unordered_map<int, T>& objGroup)
 {
 	while (true)
 	{
@@ -31,11 +31,9 @@ int FindObjById(const vector<T>& objGroup)
 			cout << "Вы вышли из режима поиска по ID.\n";
 			return -1;
 		}
-		else
+		else if (objGroup.find(id) != objGroup.end())
 		{
-			for (int i = 0; i < objGroup.size(); i++)
-				if (id == objGroup[i].GetId())
-					return i;
+			return id;
 		}
 		cout << "Такого ID не существует. Пожалуйста, введите существующий ID.\n";
 	}
@@ -60,16 +58,12 @@ bool CheckCsByUnusedShops(const CompressorStation& cs, float param)
 }
 
 template <typename TFilter, typename TObj>
-vector<int> FindObjByFilter(const vector<TObj>& group, Filter<TFilter, TObj> f, TFilter param)
+vector<int> FindObjByFilter(const unordered_map<int, TObj>& group, Filter<TFilter, TObj> f, TFilter param)
 {
 	vector <int> res;
-	int i = 0;
-	for (auto& obj : group)
-	{
-		if (f(obj, param))
-			res.push_back(i);
-		i++;
-	}
+	for (const pair<int, TObj>& obj : group)
+		if (f(obj.second, param))
+			res.push_back(obj.first);
 	return res;
 }
 
@@ -79,8 +73,8 @@ int main()
 	SetConsoleCP(1251);
 	SetConsoleOutputCP(1251);
 
-	vector<Pipe> pGroup = vector<Pipe>{};
-	vector<CompressorStation> csGroup = vector<CompressorStation>{};
+	unordered_map<int, Pipe> pGroup = unordered_map<int, Pipe>{};
+	unordered_map<int, CompressorStation> csGroup = unordered_map<int, CompressorStation>{};
 
 	while (true)
 	{
@@ -106,25 +100,34 @@ int main()
 		case 1:
 		{
 			PrintTitle("ДОБАВИТЬ ТРУБУ");
-			pGroup.push_back(Pipe());
-
+			Pipe p;
+			cin >> p;
+			pGroup.insert(make_pair(++Pipe::pMaxId, p));
 			break;
 		}
 		case 2:
 		{
 			PrintTitle("ДОБАВИТЬ КС");
-			csGroup.push_back(CompressorStation());
+			CompressorStation cs;
+			cin >> cs;
+			csGroup.insert(make_pair(++CompressorStation::csMaxId, cs));
 			break;
 		}
 		case 3:
 		{
 			PrintTitle("ПРОСМОТР ВСЕХ ОБЪЕКТОВ");
 			cout << "Количество труб - " << pGroup.size() << "\n";
-			for (auto& p : pGroup)
-				cout << p;
+			for (const pair<int, Pipe>& p : pGroup)
+			{
+				cout << "Труба " << p.first << ".\n";
+				cout << p.second;
+			}
 			cout << "Количество КС - " << csGroup.size() << "\n";
-			for (auto& cs : csGroup)
-				cout << cs;
+			for (const pair<int, CompressorStation>& cs : csGroup)
+			{
+				cout << "Компрессорная станция " << cs.first << ".\n";
+				cout << cs.second;
+			}
 			break;
 		}
 		case 4:
@@ -181,11 +184,10 @@ int main()
 			PrintTitle("УДАЛИТЬ ТРУБУ");
 			if (pGroup.size() != 0)
 			{
-				int index = FindObjById(pGroup);
-				if (index != -1)
+				int id = FindObjById(pGroup);
+				if (id != -1)
 				{
-					// www.cplusplus.com/reference/vector/vector/erase/
-					pGroup.erase(pGroup.cbegin() + index);
+					pGroup.erase(id);
 					cout << "Труба успешно удалена!\n";
 				}
 			}
@@ -200,11 +202,10 @@ int main()
 			PrintTitle("УДАЛИТЬ КС");
 			if (csGroup.size() != 0)
 			{
-				int index = FindObjById(csGroup);
-				if (index != -1)
+				int id = FindObjById(csGroup);
+				if (id != -1)
 				{
-					// www.cplusplus.com/reference/vector/vector/erase/
-					csGroup.erase(csGroup.cbegin() + index);
+					csGroup.erase(id);
 					cout << "КС успешно удалена!\n";
 				}
 			}
@@ -226,18 +227,34 @@ int main()
 				case 1:
 				{
 					for (int i : FindObjByFilter(pGroup, CheckPipeByRepairing, true))
+					{
+						cout << "Труба " << i << ".\n";
 						cout << pGroup[i];
+					}
 					break;
 				}
 				case 2:
 				{
 					for (int i : FindObjByFilter(pGroup, CheckPipeByRepairing, false))
+					{
+						cout << "Труба " << i << ".\n";
 						cout << pGroup[i];
+					}
 					break;
 				}
 				default:
 					cout << "Выход из режима поиска труб\n";
 					break;
+				}
+				cout << "\nВы хотите отредактировать эти трубы?\n"
+					<< "1 - Починить все\n"
+					<< "0 и пр. - Выйти\n";
+				TryInput(input, "Введите: ");
+				if (input == 1)
+				{
+					for (pair<int, Pipe> p : pGroup)
+						p.second.Repair();
+					cout << "Все выбранные трубы успешно починены!\n";
 				}
 			}
 			else
@@ -263,7 +280,10 @@ int main()
 					cin.ignore();
 					getline(cin, name);
 					for (int i : FindObjByFilter(csGroup, CheckCsByName, name))
+					{
+						cout << "Компрессорная станция " << i << ".\n";
 						cout << csGroup[i];
+					}
 					break;
 				}
 				case 2:
@@ -271,7 +291,10 @@ int main()
 					float percent;
 					TryInput(percent, "Введите процент для фильтрации (покажутся КС с процентом меньше указанного): ");
 					for (int i : FindObjByFilter(csGroup, CheckCsByUnusedShops, percent))
+					{
+						cout << "Компрессорная станция " << i << ".\n";
 						cout << csGroup[i];
+					}
 					break;
 				}
 				default:
@@ -306,14 +329,21 @@ int main()
 			fout.open(filename + ".txt", ios::out);
 			if (fout.is_open())
 			{
+				int pCount;
 				fout << pGroup.size() << '\n'
 					<< csGroup.size() << '\n'
 					<< Pipe::pMaxId << '\n'
 					<< CompressorStation::csMaxId << '\n';
-				for (auto& p : pGroup)
-					p.SaveToFile(fout);
-				for (auto& cs : csGroup)
-					cs.SaveToFile(fout);
+				for (pair<int, Pipe> p : pGroup)
+				{
+					fout << p.first << '\n';
+					p.second.SaveToFile(fout);
+				}
+				for (pair<int, CompressorStation> cs : csGroup)
+				{
+					fout << cs.first << '\n';
+					cs.second.SaveToFile(fout);
+				}
 				fout.close();
 				cout << "Файл успешно сохранён!\n";
 			}
@@ -333,8 +363,8 @@ int main()
 			fin.open(filename + ".txt", ios::in);
 			if (fin.is_open())
 			{
-				pGroup.resize(0);
-				csGroup.resize(0);
+				pGroup.clear();
+				csGroup.clear();
 				int pSize;
 				int csSize;
 				fin >> pSize;
@@ -342,9 +372,17 @@ int main()
 				fin >> Pipe::pMaxId;
 				fin >> CompressorStation::csMaxId;
 				while (pSize--)
-					pGroup.push_back(Pipe(fin));
+				{
+					int id;
+					fin >> id;
+					pGroup.insert(make_pair(id, Pipe(fin)));
+				}
 				while (csSize--)
-					csGroup.push_back(CompressorStation(fin));
+				{
+					int id;
+					fin >> id;
+					csGroup.insert(make_pair(id, CompressorStation(fin)));
+				}
 				fin.close();
 				cout << "Файл успешно загружен!\n";
 			}

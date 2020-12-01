@@ -12,10 +12,11 @@ class Pipe
 public:
 	static int pMaxId;
 	friend std::ostream& operator << (std::ostream& out, const Pipe& p);
+	friend std::istream& operator >> (std::istream& in, Pipe& p);
 	Pipe();
 	Pipe(std::ifstream& fin);
-	int GetId() const;
 	bool GetRepairing() const;
 	void Edit();
 	void SaveToFile(std::ofstream& fout);
+	void Repair();
 };

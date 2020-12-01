@@ -1,7 +1,6 @@
 #include "CompressorStation.h"
 
 int CompressorStation::csMaxId = 0;
-int csId;
 std::string Name;
 int ShopsCount;
 int WorkingShopsCount;
@@ -9,32 +8,15 @@ float Efficiency;
 
 CompressorStation::CompressorStation()
 {
-	csId = ++csMaxId;
-	std::cout << "Введите имя компрессорной станции: ";
-	std::cin.ignore();
-	std::getline(std::cin, Name);
-	TryInput(ShopsCount, "Введите общее кол-во цехов: ");
-	TryInput(WorkingShopsCount, "Введите кол-во работающих цехов: ");
-	while (WorkingShopsCount > ShopsCount) {
-		std::cout << "Ошибка! Кол-во работающих цехов не может быть больше общего кол-ва цехов\n";
-		TryInput(WorkingShopsCount, "Пожалуйста, введите корректное кол-во работающих цехов: ");
-	}
-	TryInput(Efficiency, "Введите эффетивность компрессорной станции: ");
 }
 
 CompressorStation::CompressorStation(std::ifstream& fin)
 {
-	fin >> csId;
 	fin.ignore();
 	std::getline(fin, Name);
 	fin >> ShopsCount
 		>> WorkingShopsCount
 		>> Efficiency;
-}
-
-int CompressorStation::GetId() const
-{
-	return csId;
 }
 
 std::string CompressorStation::GetName() const
@@ -87,8 +69,7 @@ void CompressorStation::RecountWorkingShopsCount()
 
 void CompressorStation::SaveToFile(std::ofstream& fout)
 {
-	fout << csId << '\n'
-		<< Name << '\n'
+	fout << Name << '\n'
 		<< ShopsCount << '\n'
 		<< WorkingShopsCount << '\n'
 		<< Efficiency << '\n';
@@ -96,10 +77,23 @@ void CompressorStation::SaveToFile(std::ofstream& fout)
 
 std::ostream& operator << (std::ostream& out, const CompressorStation& cs)
 {
-	std::cout << "Компрессорная станция " << cs.csId << ".\n"
-		<< "    Имя: " << cs.Name << "\n"
+	std::cout << "    Имя: " << cs.Name << "\n"
 		<< "    Работает " << cs.WorkingShopsCount << "/" << cs.ShopsCount << " цехов" "\n"
 		<< "    Эффективность: " << cs.Efficiency << "\n";
-	std::cout << cs.GetPercentUnusedShops() << '\n';
 	return out;
+}
+
+std::istream& operator>>(std::istream& in, CompressorStation& cs)
+{
+	std::cout << "Введите имя компрессорной станции: ";
+	std::cin.ignore();
+	std::getline(std::cin, cs.Name);
+	TryInput(cs.ShopsCount, "Введите общее кол-во цехов: ");
+	TryInput(cs.WorkingShopsCount, "Введите кол-во работающих цехов: ");
+	while (cs.WorkingShopsCount > cs.ShopsCount) {
+		std::cout << "Ошибка! Кол-во работающих цехов не может быть больше общего кол-ва цехов\n";
+		TryInput(cs.WorkingShopsCount, "Пожалуйста, введите корректное кол-во работающих цехов: ");
+	}
+	TryInput(cs.Efficiency, "Введите эффетивность компрессорной станции: ");
+	return in;
 }

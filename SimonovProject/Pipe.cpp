@@ -1,30 +1,19 @@
 #include "Pipe.h"
 
 int Pipe::pMaxId = 0;
-int pId;
 float Length;
 float Diameter;
 bool IsRepairing;
 
 Pipe::Pipe()
 {
-	pId = ++pMaxId;
-	TryInput(Length, "Введите длину трубы (в метрах): ");
-	TryInput(Diameter, "Введите диаметр трубы (в миллиметрах): ");
-	IsRepairing = true;
 }
 
 Pipe::Pipe(std::ifstream& fin)
 {
-	fin >> pId
-		>> Length
+	fin >> Length
 		>> Diameter
 		>> IsRepairing;
-}
-
-int Pipe::GetId() const
-{
-	return pId;
 }
 
 bool Pipe::GetRepairing() const
@@ -64,20 +53,31 @@ void Pipe::Edit()
 
 void Pipe::SaveToFile(std::ofstream& fout)
 {
-	fout << pId << '\n'
-		<< Length << '\n'
+	fout << Length << '\n'
 		<< Diameter << '\n'
 		<< IsRepairing << '\n';
 }
 
+void Pipe::Repair()
+{
+	IsRepairing = true;
+}
+
 std::ostream& operator << (std::ostream& out, const Pipe& p)
 {
-	out << "Труба " << p.pId << ".\n"
-		<< "    Длина: " << p.Length << '\n'
+	out << "    Длина: " << p.Length << '\n'
 		<< "    Диаметр: " << p.Diameter << '\n';
 	if (p.IsRepairing)
 		out << "    Находится в ремонте" << '\n';
 	else
 		out << "    Не нуждается в ремонте" << '\n';
 	return out;
+}
+
+std::istream& operator >> (std::istream& in, Pipe& p)
+{
+	TryInput(p.Length, "Введите длину трубы (в метрах): ");
+	TryInput(p.Diameter, "Введите диаметр трубы (в миллиметрах): ");
+	p.IsRepairing = true;
+	return in;
 }
