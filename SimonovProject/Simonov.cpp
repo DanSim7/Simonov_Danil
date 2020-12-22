@@ -1,13 +1,12 @@
 #include <iostream>
 #include <string>
-#include <unordered_map>
 #include <conio.h>
 #include <fstream>
 #include <windows.h>
+#include "GTN.h"
+#include "utilities.h"
 #include "Pipe.h"
 #include "CompressorStation.h"
-#include "Graph.h"
-#include "utilities.h"
 using namespace std;
 
 void PrintTitle(string title)
@@ -20,62 +19,13 @@ void PrintTitle(string title)
 	cout << endl;
 }
 
-template <typename T>
-int FindObjById(const unordered_map<int, T>& objGroup)
-{
-	while (true)
-	{
-		int id;
-		TryInput(id, "Введите ID (0 - выйти): ");
-		if (id == 0)
-		{
-			cout << "Вы вышли из режима поиска по ID.\n";
-			return -1;
-		}
-		else if (objGroup.find(id) != objGroup.end())
-		{
-			return id;
-		}
-		cout << "Такого ID не существует. Пожалуйста, введите существующий ID.\n";
-	}
-}
-
-template <typename TParam, typename TObj>
-using Filter = bool(*)(const TObj& obj, TParam param);
-
-bool CheckPipeByRepairing(const Pipe& p, bool param)
-{
-	return p.GetRepairing() == param;
-}
-
-bool CheckCsByName(const CompressorStation& cs, string param)
-{
-	return cs.GetName() == param;
-}
-
-bool CheckCsByUnusedShops(const CompressorStation& cs, float param)
-{
-	return cs.GetPercentUnusedShops() <= param;
-}
-
-template <typename TFilter, typename TObj>
-vector<int> FindObjByFilter(const unordered_map<int, TObj>& group, Filter<TFilter, TObj> f, TFilter param)
-{
-	vector <int> res;
-	for (const pair<int, TObj>& obj : group)
-		if (f(obj.second, param))
-			res.push_back(obj.first);
-	return res;
-}
-
 int main()
 {
 	// Устанавливаем русскоязычный ввод и вывод (www.cyberforum.ru/cpp-beginners/thread2574044.html)
 	SetConsoleCP(1251);
 	SetConsoleOutputCP(1251);
 
-	unordered_map<int, Pipe> pGroup = unordered_map<int, Pipe>{};
-	unordered_map<int, CompressorStation> csGroup = unordered_map<int, CompressorStation>{};
+	GTN gtn = GTN();
 	int edgeCount = 0;
 
 	while (true)
@@ -92,9 +42,10 @@ int main()
 			<< "9 - Поиск КС\n"
 			<< "10 - Сохранить\n"
 			<< "11 - Загрузить\n"
-			<< "12 - Связать трубу с КС\n"
-			<< "13 - Вывести газотранспортную сеть\n"
-			<< "14 - Выполнить топологическую сортировку\n"
+			<< "12 - Установить связь\n"
+			<< "13 - Удалить связь\n"
+			<< "14 - Вывести газотранспортную сеть\n"
+			<< "15 - Выполнить топологическую сортировку\n"
 			<< "0 и пр. - Выход\n";
 
 		int inputMenu;
@@ -107,7 +58,7 @@ int main()
 			PrintTitle("ДОБАВИТЬ ТРУБУ");
 			Pipe p;
 			cin >> p;
-			pGroup.insert(make_pair(++Pipe::pMaxId, p));
+			gtn.AddPipe(p);
 			break;
 		}
 		case 2:
@@ -115,208 +66,73 @@ int main()
 			PrintTitle("ДОБАВИТЬ КС");
 			CompressorStation cs;
 			cin >> cs;
-			csGroup.insert(make_pair(++CompressorStation::csMaxId, cs));
+			gtn.AddCs(cs);
 			break;
 		}
 		case 3:
 		{
 			PrintTitle("ПРОСМОТР ВСЕХ ОБЪЕКТОВ");
-			cout << "Количество труб - " << pGroup.size() << "\n";
-			for (const pair<int, Pipe>& p : pGroup)
-			{
-				cout << "Труба " << p.first << ".\n";
-				cout << p.second;
-			}
-			cout << "Количество КС - " << csGroup.size() << "\n";
-			for (const pair<int, CompressorStation>& cs : csGroup)
-			{
-				cout << "Компрессорная станция " << cs.first << ".\n";
-				cout << cs.second;
-			}
+			cout << gtn;
 			break;
 		}
 		case 4:
 		{
 			PrintTitle("РЕДАКТИРОВАТЬ ТРУБУ");
-			if (pGroup.size() != 0)
-			{
-				int index = FindObjById(pGroup);
-				if (index != -1)
-					pGroup[index].Edit();
-			}
+			if (gtn.HasPipe())
+				gtn.EditPipe();
 			else
-			{
 				cout << "У Вас нет труб для редактирования.\n";
-			}
 			break;
 		}
 		case 5:
 		{
 			PrintTitle("РЕДАКТИРОВАТЬ КС");
-			if (csGroup.size() != 0)
-			{
-				int index = FindObjById(csGroup);
-				if (index != -1)
-				{
-					cout << "\nЧто Вы хотите сделать с КС?\n"
-						<< "1 - Увеличить/уменьшить общее количество цехов\n"
-						<< "2 - Изменить количество работающих цехов\n"
-						<< "0 и пр. - Отмена\n";
-					int input;
-					TryInput(input, "Введите: ");
-					switch (input)
-					{
-					case 1:
-						csGroup[index].RecountShopsCount();
-						break;
-					case 2:
-						csGroup[index].RecountWorkingShopsCount();
-						break;
-					default:
-						cout << "Вы вышли из режима редактирования.";
-						break;
-					}
-				}
-			}
+			if (gtn.HasCs())
+				gtn.EditCs();
 			else
-			{
 				cout << "У Вас нет КС для редактирования.\n";
-			}
 			break;
 		}
 		case 6:
 		{
 			PrintTitle("УДАЛИТЬ ТРУБУ");
-			if (pGroup.size() != 0)
-			{
-				int id = FindObjById(pGroup);
-				if (id != -1)
-				{
-					pGroup.erase(id);
-					cout << "Труба успешно удалена!\n";
-				}
-			}
+			if (gtn.HasPipe())
+				gtn.DeletePipe();
 			else
-			{
 				cout << "У Вас нет трубы для удаления.\n";
-			}
 			break;
 		}
 		case 7:
 		{
 			PrintTitle("УДАЛИТЬ КС");
-			if (csGroup.size() != 0)
-			{
-				int id = FindObjById(csGroup);
-				if (id != -1)
-				{
-					csGroup.erase(id);
-					cout << "КС успешно удалена!\n";
-				}
-			}
+			if (gtn.HasCs())
+				gtn.DeleteCs();
 			else
-			{
 				cout << "У Вас нет КС для удаления.\n";
-			}
 			break;
 		}
 		case 8:
 		{
 			PrintTitle("ПОИСК ТРУБ");
-			if (pGroup.size() != 0)
-			{
-				int input;
-				TryInput(input, "Ищем трубу в ремонте? (1 - да, 2 - нет, пр. - выйти)\n");
-				switch (input)
-				{
-				case 1:
-				{
-					for (int i : FindObjByFilter(pGroup, CheckPipeByRepairing, true))
-					{
-						cout << "Труба " << i << ".\n";
-						cout << pGroup[i];
-					}
-					break;
-				}
-				case 2:
-				{
-					for (int i : FindObjByFilter(pGroup, CheckPipeByRepairing, false))
-					{
-						cout << "Труба " << i << ".\n";
-						cout << pGroup[i];
-					}
-					break;
-				}
-				default:
-					cout << "Выход из режима поиска труб\n";
-					break;
-				}
-				cout << "\nВы хотите отредактировать эти трубы?\n"
-					<< "1 - Починить все\n"
-					<< "0 и пр. - Выйти\n";
-				TryInput(input, "Введите: ");
-				if (input == 1)
-				{
-					for (pair<int, Pipe> p : pGroup)
-						p.second.Repair();
-					cout << "Все выбранные трубы успешно починены!\n";
-				}
-			}
+			if (gtn.HasPipe())
+				gtn.SearchPipes();
 			else
-			{
 				cout << "У Вас нет трубы для поиска.\n";
-			}
 			break;
 		}
 		case 9:
 		{
 			PrintTitle("ПОИСК КС");
-			if (csGroup.size() != 0)
-			{
-				int input;
-				cout << "По какому фильтру ищем КС?\n";
-				TryInput(input, "(1 - по названию, 2 - по проценту незадействованных цехов, пр. - выйти): ");
-				switch (input)
-				{
-				case 1:
-				{
-					string name;
-					cout << "Введите имя КС для фильтрации: ";
-					cin.ignore();
-					getline(cin, name);
-					for (int i : FindObjByFilter(csGroup, CheckCsByName, name))
-					{
-						cout << "Компрессорная станция " << i << ".\n";
-						cout << csGroup[i];
-					}
-					break;
-				}
-				case 2:
-				{
-					float percent;
-					TryInput(percent, "Введите процент для фильтрации (покажутся КС с процентом меньше указанного): ");
-					for (int i : FindObjByFilter(csGroup, CheckCsByUnusedShops, percent))
-					{
-						cout << "Компрессорная станция " << i << ".\n";
-						cout << csGroup[i];
-					}
-					break;
-				}
-				default:
-					cout << "Выход из режима поиска труб\n";
-					break;
-				}
-			}
+			if (gtn.HasCs())
+				gtn.SearchCss();
 			else
-			{
 				cout << "У Вас нет КС для поиска.\n";
-			}
 			break;
 		}
 		case 10:
 		{
 			PrintTitle("СОХРАНИТЬ");
-			if (pGroup.size() == 0 && csGroup.size() == 0)
+			if (gtn.HasPipe() == false && gtn.HasCs() == false)
 			{
 				cout << "Внимание! У Вас ни одной трубы и КС. Вы действительно хотите сохранить данные?\n";
 				int input;
@@ -334,22 +150,7 @@ int main()
 			fout.open(filename + ".txt", ios::out);
 			if (fout.is_open())
 			{
-				int pCount;
-				fout << pGroup.size() << '\n'
-					<< csGroup.size() << '\n'
-					<< Pipe::pMaxId << '\n'
-					<< CompressorStation::csMaxId << '\n'
-					<< edgeCount << '\n';
-				for (pair<int, Pipe> p : pGroup)
-				{
-					fout << p.first << '\n';
-					p.second.SaveToFile(fout);
-				}
-				for (pair<int, CompressorStation> cs : csGroup)
-				{
-					fout << cs.first << '\n';
-					cs.second.SaveToFile(fout);
-				}
+				gtn.SaveToFile(fout);
 				fout.close();
 				cout << "Файл успешно сохранён!\n";
 			}
@@ -369,27 +170,7 @@ int main()
 			fin.open(filename + ".txt", ios::in);
 			if (fin.is_open())
 			{
-				pGroup.clear();
-				csGroup.clear();
-				int pSize;
-				int csSize;
-				fin >> pSize;
-				fin >> csSize;
-				fin >> Pipe::pMaxId;
-				fin >> CompressorStation::csMaxId;
-				fin >> edgeCount;
-				while (pSize--)
-				{
-					int id;
-					fin >> id;
-					pGroup.insert(make_pair(id, Pipe(fin)));
-				}
-				while (csSize--)
-				{
-					int id;
-					fin >> id;
-					csGroup.insert(make_pair(id, CompressorStation(fin)));
-				}
+				gtn = GTN(fin);
 				fin.close();
 				cout << "Файл успешно загружен!\n";
 			}
@@ -401,57 +182,32 @@ int main()
 		}
 		case 12:
 		{
-			PrintTitle("СВЯЗАТЬ ТРУБУ С КС");
-			if (pGroup.size() != 0 && csGroup.size() > 1)
-			{
-				int id = FindObjById(pGroup);
-				if (id != -1)
-				{
-					cout << "КС, из которой выходит труба:\n";
-					int outCsId = FindObjById(csGroup);
-					cout << "КС, в которую входит труба:\n";
-					int inCsId = FindObjById(csGroup);
-					while (inCsId == outCsId)
-					{
-						cout << "Труба не может входить в ту же самую КС! Введите другой Id:\n";
-						int inCsId = FindObjById(csGroup);
-					}
-					pGroup[id].outCsId = outCsId;
-					pGroup[id].inCsId = inCsId;
-					edgeCount++;
-				}
-				else
-				{
-					cout << "Выход из режима связи трубы с КС...\n";
-				}
-			}
+			PrintTitle("УСТАНОВИТЬ СВЯЗЬ");
+			if (gtn.HasPipe() && gtn.HasCs(2))
+				gtn.ConnectPipe();
 			else
-			{
 				cout << "У Вас нет труб и КС для связи.\n";
-			}
 			break;
 		}
 		case 13:
 		{
-			PrintTitle("ГАЗОТРАНСПОРТНАЯ СЕТЬ");
-			Graph g(edgeCount);
-			for (const pair<int, Pipe>& p : pGroup)
-				if (p.second.inCsId > 0 && p.second.outCsId > 0 && !p.second.GetRepairing())
-				{
-					g.addEdge(p.second.outCsId - 1, p.second.inCsId - 1);
-					cout << "КС " << p.second.outCsId << " -- Труба " << p.first << " -> КС " << p.second.inCsId << '\n';
-				}
-			
+			PrintTitle("УДАЛИТЬ СВЯЗЬ");
+			if (gtn.HasPipe() && gtn.HasCs(2))
+				gtn.ConnectPipe();
+			else
+				cout << "У Вас нет связей\n";
 			break;
 		}
 		case 14:
 		{
+			PrintTitle("ГАЗОТРАНСПОРТНАЯ СЕТЬ");
+			gtn.ShowNetwork();
+			break;
+		}
+		case 15:
+		{
 			PrintTitle("ТОПОЛОГИЧЕСКАЯ СОРТИРОВКА");
-			Graph g(edgeCount);
-			for (const pair<int, Pipe>& p : pGroup)
-				if (p.second.inCsId > 0 && p.second.outCsId > 0 && !p.second.GetRepairing())
-					g.addEdge(p.second.outCsId - 1, p.second.inCsId - 1);
-			g.topologicalSort();
+			gtn.TopologicalSort();
 			break;
 		}
 		default:

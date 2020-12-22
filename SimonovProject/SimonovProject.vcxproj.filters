@@ -24,7 +24,7 @@
     <ClCompile Include="CompressorStation.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="Graph.cpp">
+    <ClCompile Include="GTN.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -38,7 +38,7 @@
     <ClInclude Include="utilities.h">
       <Filter>Исходные файлы</Filter>
     </ClInclude>
-    <ClInclude Include="Graph.h">
+    <ClInclude Include="GTN.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
