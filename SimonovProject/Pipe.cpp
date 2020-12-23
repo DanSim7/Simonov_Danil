@@ -20,9 +20,14 @@ Pipe::Pipe(std::ifstream& fin)
 		>> inCsId;
 }
 
-float Pipe::GetWeight() const
+int Pipe::GetProductivity() const
 {
-	return 4 * 3.14 * Diameter / Length;
+	return round(sqrt(pow(Diameter, 5) / Length) / 200);
+}
+
+float Pipe::GetLength() const
+{
+	return Length;
 }
 
 bool Pipe::GetRepairing() const
@@ -76,8 +81,9 @@ void Pipe::Repair()
 
 std::ostream& operator << (std::ostream& out, const Pipe& p)
 {
-	out << "    Длина: " << p.Length << '\n'
-		<< "    Диаметр: " << p.Diameter << '\n';
+	out << "    Длина: " << p.Length << " м"<< '\n'
+		<< "    Диаметр: " << p.Diameter << " см" << '\n'
+		<< "    Производительность: " << p.GetProductivity() << " млн м3/сут" << '\n';
 	if (p.IsRepairing)
 		out << "    Находится в ремонте" << '\n';
 	else
@@ -88,7 +94,7 @@ std::ostream& operator << (std::ostream& out, const Pipe& p)
 std::istream& operator >> (std::istream& in, Pipe& p)
 {
 	TryInput(p.Length, "Введите длину трубы (в метрах): ");
-	TryInput(p.Diameter, "Введите диаметр трубы (в миллиметрах): ");
+	TryInput(p.Diameter, "Введите диаметр трубы (в сантиметрах): ");
 	p.IsRepairing = true;
 	p.outCsId = -1;
 	p.inCsId = -1;

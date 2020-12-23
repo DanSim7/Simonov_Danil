@@ -21,8 +21,8 @@ public:
     GTN(ifstream& fin);
     friend ostream& operator << (ostream& out, const GTN& gtn);
     void SaveToFile(ofstream& fout);
-    void AddPipe(const Pipe& p);
-    void AddCs(const CompressorStation& cs);
+    void AddPipe();
+    void AddCs();
     bool HasPipe() const;
     bool HasCs(int count = 1) const;
     void EditPipe();
@@ -36,4 +36,6 @@ public:
     bool CanBeUsed(const Pipe& p) const;
     void ShowNetwork();
     void TopologicalSort();
+    void FindMaxFlow();
+    void FindShortestPath();
 };

@@ -5,8 +5,6 @@
 #include <windows.h>
 #include "GTN.h"
 #include "utilities.h"
-#include "Pipe.h"
-#include "CompressorStation.h"
 using namespace std;
 
 void PrintTitle(string title)
@@ -46,6 +44,8 @@ int main()
 			<< "13 - Удалить связь\n"
 			<< "14 - Вывести газотранспортную сеть\n"
 			<< "15 - Выполнить топологическую сортировку\n"
+			<< "16 - Найти максимальный поток\n"
+			<< "17 - Найти кратчайшие пути\n"
 			<< "0 и пр. - Выход\n";
 
 		int inputMenu;
@@ -56,17 +56,13 @@ int main()
 		case 1:
 		{
 			PrintTitle("ДОБАВИТЬ ТРУБУ");
-			Pipe p;
-			cin >> p;
-			gtn.AddPipe(p);
+			gtn.AddPipe();
 			break;
 		}
 		case 2:
 		{
 			PrintTitle("ДОБАВИТЬ КС");
-			CompressorStation cs;
-			cin >> cs;
-			gtn.AddCs(cs);
+			gtn.AddCs();
 			break;
 		}
 		case 3:
@@ -208,6 +204,18 @@ int main()
 		{
 			PrintTitle("ТОПОЛОГИЧЕСКАЯ СОРТИРОВКА");
 			gtn.TopologicalSort();
+			break;
+		}
+		case 16:
+		{
+			PrintTitle("НАЙТИ МАКСИМАЛЬНЫЙ ПОТОК");
+			gtn.FindMaxFlow();
+			break;
+		}
+		case 17:
+		{
+			PrintTitle("НАЙТИ КРАТЧАЙШИЕ ПУТИ");
+			gtn.FindShortestPath();
 			break;
 		}
 		default:

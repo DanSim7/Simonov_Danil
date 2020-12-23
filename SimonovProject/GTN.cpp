@@ -189,16 +189,6 @@ bool HasCycle(vector<vector<int>>& edges, int n)
 	}
 }
 
-void GTN::AddPipe(const Pipe& p)
-{
-	pGroup.insert(make_pair(++Pipe::pMaxId, p));
-}
-
-void GTN::AddCs(const CompressorStation& cs)
-{
-	csGroup.insert(make_pair(++CompressorStation::csMaxId, cs));
-}
-
 void GTN::TopologicalSort()
 {
 	unordered_map<int, int> indexVertexes;
@@ -222,6 +212,236 @@ void GTN::TopologicalSort()
 			Stack.pop();
 		}
 	}
+}
+
+int min(int x, int y)
+{
+	if (x < y)
+		return x;
+	else
+		return y;
+}
+
+void Enque(int x, vector<int>& q, int& tail, vector<int>& color)
+{
+	q[tail] = x;
+	tail++;
+	color[x] = 1;
+}
+
+int bfs(int start, int end, vector<int>& color, vector<int>& pred, vector<int>& q, vector<vector<int>>& capacity, vector<vector<int>>& flow, int n, int& head, int& tail)
+{
+	for (int u = 0; u < n; u++)
+		color[u] = 0;
+
+	head = 0;
+	tail = 0; 
+	Enque(start, q, tail, color);
+	pred[start] = -1;
+	while (head != tail)
+	{
+		int u = q[head]; 
+		head++; 
+		color[u] = 2;
+		for (int v = 0; v < n; v++)
+		{
+			if (color[v] == 0 && (capacity[u][v] - flow[u][v]) > 0) {
+				Enque(v, q, tail, color);
+				pred[v] = u;
+			}
+		}
+	}
+	if (color[end] == 2)
+		return 0;
+	else return 1;
+}
+
+void GTN::FindMaxFlow()
+{
+	set<int> vertexes;
+	for (const pair<int, Pipe>& p : pGroup)
+		if (CanBeUsed(p.second))
+		{
+			vertexes.insert(p.second.outCsId);
+			vertexes.insert(p.second.inCsId);
+		}
+	int n = vertexes.size();
+	unordered_map<int, int> invertIndexVertexes;
+	unordered_map<int, int> indexVertexes;
+	int i = 0;
+	for (const int& vertex : vertexes)
+	{
+		indexVertexes.insert(make_pair(i, vertex));
+		invertIndexVertexes.insert(make_pair(vertex, i++));
+	}
+	vector<vector<int>> graph;
+	graph.resize(n);
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < n; j++)
+			graph[i].push_back(0);
+	for (const pair<int, Pipe>& p : pGroup)
+		if (CanBeUsed(p.second))
+			graph[invertIndexVertexes[p.second.outCsId]][invertIndexVertexes[p.second.inCsId]] = p.second.GetProductivity();
+
+	int start;
+	TryInput(start, "Введите ID КС, из которой будет идти поток (0 - выйти): ");
+	if (invertIndexVertexes.find(start) != invertIndexVertexes.end())
+		start = invertIndexVertexes[start];
+	else
+	{
+		cout << "Ошибка! Такой КС нет в сети((";
+		return;
+	}
+	int end;
+	TryInput(end, "Введите ID КС, в которую придёт поток (0 - выйти): ");
+	if (invertIndexVertexes.find(end) != invertIndexVertexes.end())
+		end = invertIndexVertexes[end];
+	else
+	{
+		cout << "Ошибка! Такой КС нет в сети((";
+		return;
+	}
+
+	int head, tail;
+	vector<vector<int>> flow;
+	vector<int> color, pred, q;
+
+	int maxflow = 0;
+	flow.resize(n);
+	for (int i = 0; i < n; i++) 
+	{
+		for (int j = 0; j < n; j++)
+			flow[i].push_back(0);
+		color.push_back(-1);
+		pred.push_back(-1);
+		q.push_back(0);
+	}
+	q.push_back(0); q.push_back(0);
+	while (bfs(start, end, color, pred, q, graph, flow, n, head, tail) == 0)  
+	{
+		int delta = 10000;
+		for (int u = n-1; pred[u] >= 0; u = pred[u])
+		{
+			delta = min(delta, (graph[pred[u]][u] - flow[pred[u]][u]));
+		}
+		for (int u = n-1; pred[u] >= 0; u = pred[u])
+		{
+			flow[pred[u]][u] += delta;
+			flow[u][pred[u]] -= delta;
+		}
+		maxflow += delta;
+	}
+	cout << "Максимальный поток: " << maxflow << endl;
+}
+
+void WritePath(int* T, int Start, int Vertex, unordered_map<int, int> indexVertexes)
+{
+	if (Vertex != Start)
+		WritePath(T, Start, T[Vertex], indexVertexes);
+	cout << indexVertexes[Vertex] << ' ';
+}
+
+void Dijkstra(const vector<vector<int>>& G, int N, int start, unordered_map<int, int> indexVertexes)
+{
+	int min, index;
+	int* D;
+	int* V;
+	int* T;
+	V = (int*)malloc(N * sizeof(int));
+	D = (int*)malloc(N * sizeof(int));
+	T = (int*)malloc(N * sizeof(int));
+	for (int i = 0; i < N; i++)
+	{
+		V[i] = 0;
+		D[i] = INT_MAX;
+		T[i] = -1;
+	}
+	T[start] = 0;
+	D[start] = 0;
+	for (int count = 0; count < N - 1; count++)
+	{
+		min = INT_MAX;
+		for (int i = 0; i < N; i++)
+			if ((V[i] == 0) && (D[i] <= min))
+			{
+				min = D[i];
+				index = i;
+			}
+		V[index] = 1;
+		for (int i = 0; i < N; i++)
+			if ((V[i] == 0) && (G[index][i] != 0) && (D[index] != INT_MAX) && ((D[index] + G[index][i]) < D[i]))
+			{
+				D[i] = D[index] + G[index][i];
+				T[i] = index;
+			}
+
+	}
+	printf("Кратчайшие пути:\n");
+	for (int i = 0; i < N; i++)
+		if (D[i] != INT_MAX)
+		{
+			cout << indexVertexes[start] << " -> " << indexVertexes[i] << " = " << D[i] << '\n';
+			cout << "   Путь лежит через вершины: ";
+			WritePath(T, start, i, indexVertexes);
+			cout << '\n';
+		}
+		else
+		{
+			cout << "Путь " << indexVertexes[start] << " -> " << indexVertexes[i] << " не существует\n";
+		}
+}
+
+void GTN::FindShortestPath()
+{
+	set<int> vertexes;
+	for (const pair<int, Pipe>& p : pGroup)
+		if (CanBeUsed(p.second))
+		{
+			vertexes.insert(p.second.outCsId);
+			vertexes.insert(p.second.inCsId);
+		}
+	int n = vertexes.size();
+	unordered_map<int, int> invertIndexVertexes;
+	unordered_map<int, int> indexVertexes;
+	int i = 0;
+	for (const int& vertex : vertexes)
+	{
+		indexVertexes.insert(make_pair(i, vertex));
+		invertIndexVertexes.insert(make_pair(vertex, i++));
+	}
+	vector<vector<int>> graph;
+	graph.resize(n);
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < n; j++)
+			graph[i].push_back(0);
+	for (const pair<int, Pipe>& p : pGroup)
+		if (CanBeUsed(p.second))
+			graph[invertIndexVertexes[p.second.outCsId]][invertIndexVertexes[p.second.inCsId]] = p.second.GetLength();
+	
+	int start;
+	TryInput(start, "Введите ID КС, из которой нужно посчитать пути (0 - выйти): ");
+	if (invertIndexVertexes.find(start) != invertIndexVertexes.end())
+		start = invertIndexVertexes[start];
+	else
+	{
+		cout << "Ошибка! Такой КС нет в сети((";
+		return;
+	}
+	Dijkstra(graph, n, start, indexVertexes);
+}
+
+void GTN::AddPipe()
+{
+	Pipe p;
+	cin >> p;
+	pGroup.insert(make_pair(++Pipe::pMaxId, p));
+}
+
+void GTN::AddCs()
+{
+	CompressorStation cs;
+	cin >> cs;
+	csGroup.insert(make_pair(++CompressorStation::csMaxId, cs));
 }
 
 bool GTN::HasPipe() const

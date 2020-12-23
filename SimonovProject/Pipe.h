@@ -18,8 +18,9 @@ public:
 	friend std::istream& operator >> (std::istream& in, Pipe& p);
 	Pipe();
 	Pipe(std::ifstream& fin);
-	float GetWeight() const;
+	int GetProductivity() const;
 	bool GetRepairing() const;
+	float GetLength() const;
 	void Edit();
 	void SaveToFile(std::ofstream& fout);
 	void Repair();
