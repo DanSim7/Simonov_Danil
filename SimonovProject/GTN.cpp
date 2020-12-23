@@ -320,11 +320,11 @@ void GTN::FindMaxFlow()
 	while (bfs(start, end, color, pred, q, graph, flow, n, head, tail) == 0)  
 	{
 		int delta = 10000;
-		for (int u = n-1; pred[u] >= 0; u = pred[u])
+		for (int u = end; pred[u] >= 0; u = pred[u])
 		{
 			delta = min(delta, (graph[pred[u]][u] - flow[pred[u]][u]));
 		}
-		for (int u = n-1; pred[u] >= 0; u = pred[u])
+		for (int u = end; pred[u] >= 0; u = pred[u])
 		{
 			flow[pred[u]][u] += delta;
 			flow[u][pred[u]] -= delta;
